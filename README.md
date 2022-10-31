@@ -4,6 +4,7 @@
 Based on findings about new IP Camera SOC from CHIPUP China company. 
 
 ** Boot message after power UP ** 
+
 ```
 $Tch SpiNand
 Load 0x00000080 to 0x00100000,size=30332
