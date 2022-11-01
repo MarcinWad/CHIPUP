@@ -5,8 +5,12 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 
 1. [Basic datasheet about XS7320](xs7320.md)
 2. [FDT Extracted from existing device](dtb-xs7320/xs7320.dts)
+3. [Header Structure](#header-structure)
+4. [Boot process](#boot-process)
+5. [Boot log of MiniBoot](#boot-message-after-power-up)
+6. [Boot after NAND desoldered](asd)
 
-Header structure
+### Header structure ###
 
 | Offset | Byte count  | Info | More info |
 | ------------- | ------------- | ------------- | ------------- |
@@ -17,13 +21,17 @@ Header structure
 | 0x12  | 2 | Image length | With RSA Signature (Signature is 521 bytes at tail of image) |
 | 0x14  | 114 | TBD | TBD | 
 
-Boot process:
+### Boot process ###
 
 Image base address is 0x00100000 for Mini Uboot. CPU has internal BootROM which loads from flash into RAM at boot time and checks Signature and boots or fails and resets CPU.
 
 After desoldering NAND chip - it still tries to boot itself - of course it fails. But after failing it tries to send some garbake over UART over and over again which makes me think it has somehow a recovery method like in HiSilicon Chips (HiTool). Needs to be discovered further.
 
-** Boot message after power UP ** 
+After power up, SOC scans for MiniBoot header on NAND or NOR chip for a magic bytes. When it finds one - it checks Image sign which is at the end of the Image (521 bytes) using RSA algorightm inside SOC (Security registers). 
+
+After check pass, it trains DDR Memory and loads a second stage bootloader (i.e Uboot) into RAM and Jumps there.
+
+### Boot message after power UP ###
 
 ```
 $Tch SpiNand
@@ -66,4 +74,53 @@ SmcReadNandID id = 0x142C142C
 SMC_nandInit set MICRON F50L1G41XA, id 0x0000002C 0x00000014
 SMC_init done
 Jmp 0x12000000
+```
+
+### Boot after NAND desoldered ###
+```
+Tch SpiNand
+Tch SpiNor
+dwmci_send_cmd: Timeout.
+Mmc:Init failed!
+DScan SpiNand
+scan blk : 64
+Image flag error! read=0x00000000
+scan blk : 128
+Image flag error! read=0x00000000
+scan blk : 192
+Image flag error! read=0x00000000
+scan blk : 256
+Image flag error! read=0x00000000
+scan blk : 320
+Image flag error! read=0x00000000
+scan blk : 384
+Image flag error! read=0x00000000
+scan blk : 448
+Image flag error! read=0x00000000
+scan blk : 512
+Image flag error! read=0x00000000
+scan blk : 576
+Image flag error! read=0x00000000
+scan blk : 640
+Image flag error! read=0x00000000
+scan blk : 704
+Image flag error! read=0x00000000
+scan blk : 768
+Image flag error! read=0x00000000
+scan blk : 832
+Image flag error! read=0x00000000
+scan blk : 896
+Image flag error! read=0x00000000
+scan blk : 960
+Image flag error! read=0x00000000
+scan blk : 1024
+Image flag error! read=0x00000000
+DScan fail!
+DScan SpiNor
+Image flag error! read=0xFFFFFFFF
+DScan fail!
+DScan Mmc
+DScan fail!
+Load image header falied!
+(some bytes)
 ```
