@@ -4,6 +4,7 @@
 Based on findings about new IP Camera SOC from CHIPUP China company. 
 
 1. [Basic datasheet about XS7320](xs7320.md)
+2. [FDT Extracted from existing device](dtb-xs7320/xs7320.dts)
 
 Header structure
 
@@ -13,10 +14,14 @@ Header structure
 | 0x4  | 4 | CRC of Header  | CRC is from byte 8 to 128 |
 | 0x8  | 2 | ????? | ???? |
 | 0x10  | 2 | ????? | ???? |
-| 0x12  | 2 | Image length | With RSA Signature |
+| 0x12  | 2 | Image length | With RSA Signature (Signature is 521 bytes at tail of image) |
 | 0x14  | 114 | TBD | TBD | 
 
+Boot process:
 
+Image base address is 0x00100000 for Mini Uboot. CPU has internal BootROM which loads from flash into RAM at boot time and checks Signature and boots or fails and resets CPU.
+
+After desoldering NAND chip - it still tries to boot itself - of course it fails. But after failing it tries to send some garbake over UART over and over again which makes me think it has somehow a recovery method like in HiSilicon Chips (HiTool). Needs to be discovered further.
 
 ** Boot message after power UP ** 
 
