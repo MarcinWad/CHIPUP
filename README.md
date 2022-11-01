@@ -7,9 +7,9 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 
 Header structure
 
-| Offset | Byte count  | Info |
-| ------------- | ------------- | ------------- |
-| 0x0  | 4 | Header magic (0x55AA00FF) | 
+| Offset | Byte count  | Info | More info |
+| ------------- | ------------- | ------------- | ------------- |
+| 0x0  | 4 | Header magic | 0x55AA00FF 
 | 0x4  | 4 | CRC of Header  | CRC is from byte 8 to 128 |
 | 0x8  | 2 | ????? | ???? |
 | 0x10  | 2 | ????? | ???? |
