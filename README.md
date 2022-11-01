@@ -8,7 +8,7 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 3. [Header Structure](#header-structure)
 4. [Boot process](#boot-process)
 5. [Boot log of MiniBoot](#boot-message-after-power-up)
-6. [Boot after NAND desoldered](asd)
+6. [Boot after NAND desoldered](#boot-after-nand-desoldered)
 
 ### Header structure ###
 
