@@ -3,6 +3,8 @@
 
 Based on findings about new IP Camera SOC from CHIPUP China company. 
 
+1. [Basic datasheet about XS7320](xs7320.md)
+
 ** Boot message after power UP ** 
 
 ```
