@@ -7,10 +7,9 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 2. [FDT Extracted from existing device](dtb-xs7320/xs7320.dts)
 3. [Header Structure](#header-structure)
 4. [Boot process](#boot-process)
-5. [Serial speed negotiation](serial_speed_negotiation)
-6. [Boot log of MiniBoot](#boot-message-after-power-up)
-7. [Boot after NAND desoldered](#boot-after-nand-desoldered)
-8. [FACTORY_MODE - you can flash whole NAND, modify MEMORY and boot from RAM](#tbd)
+5. [Boot log of MiniBoot](#boot-message-after-power-up)
+6. [Boot after NAND desoldered](#boot-after-nand-desoldered)
+7. [FACTORY_MODE - you can flash whole NAND, modify MEMORY and boot from RAM](#tbd)
 
 ### Header structure ###
 
