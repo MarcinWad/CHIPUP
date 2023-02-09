@@ -22,7 +22,7 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 | 0x0C  | 4 | Payloadsize  | In hex Big Endian, it later adds 776 bytes extra to this value and loads into memory |
 | 0x20  | 4 | Offset of next boot image in flash | It will try to skip there if loading fails |
 | 0x40  | 4 | Loader Type | 0x4 - means SPINAND, 0x2 - SPINOR, 0x8 - EMMC |
-| 0x44  | 4 | Sign Type | TBD |
+| 0x44  | 4 | Sign Type | 0x02 means CRC check, 0x03 means RSA check with Sign at the end of image |
 
 ### Boot process ###
 
