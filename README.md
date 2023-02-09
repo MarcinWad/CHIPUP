@@ -7,8 +7,10 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 2. [FDT Extracted from existing device](dtb-xs7320/xs7320.dts)
 3. [Header Structure](#header-structure)
 4. [Boot process](#boot-process)
-5. [Boot log of MiniBoot](#boot-message-after-power-up)
-6. [Boot after NAND desoldered](#boot-after-nand-desoldered)
+5. [Serial speed negotiation](serial_speed_negotiation)
+6. [Boot log of MiniBoot](#boot-message-after-power-up)
+7. [Boot after NAND desoldered](#boot-after-nand-desoldered)
+8. [FACTORY_MODE - you can flash whole NAND, modify MEMORY and boot from RAM](#tbd)
 
 ### Header structure ###
 
@@ -28,7 +30,17 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 
 Image base address is 0x00100000 for Mini Uboot. CPU has internal BootROM which loads from flash into RAM at boot time and checks Signature and boots or fails and resets CPU.
 
-After desoldering NAND chip - it still tries to boot itself - of course it fails. But after failing it tries to send some garbake over UART over and over again which makes me think it has somehow a recovery method like in HiSilicon Chips (HiTool). Needs to be discovered further.
+After desoldering NAND chip - it still tries to boot itself - of course it fails. But after failing it tries to send some garbake over UART over and over again.
+
+### Serial speed negotiation
+
+At the end of fail boot we can see a garbage over serial line. This is not garbage. BootROM tries to change baudrate starting from 750k through 500k, 375k and lower ones and sends magic packet at selected speed 0x0
+This is a serial speed negotiation which SOC tries to do to put FACTORY_MODE speed at higher baud rate than default 115200k
+
+Scenario is as follows:
+Set UART speed to 750k, send bytes 0x025A0003 and waits for 100ms for response 0x02A50003. If it recicves, this bytes, it will setup this baudrate and try to boot again using FACTORY_MODE. This mode will be written later. If it not recives magic bytes, it lowers speed, send again and wait for answer. If no answer is recived, it stays at 115200k and tries to boot FACTORY_MODE again.
+
+### Boot mode
 
 After power up, SOC scans for MiniBoot header on NAND or NOR chip for a magic bytes. When it finds one - it checks Image sign which is at the end of the Image (521 bytes) using RSA algorightm inside SOC (Security registers). 
 
@@ -125,5 +137,5 @@ DScan fail!
 DScan Mmc
 DScan fail!
 Load image header falied!
-(some bytes)
+(Serial Negotiation bytes - check Serial Negotiation topic)
 ```
