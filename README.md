@@ -14,12 +14,13 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 
 | Offset | Byte count  | Info | More info |
 | ------------- | ------------- | ------------- | ------------- |
-| 0x0  | 4 | Header magic | 0x55AA00FF 
+| 0x0  | 4 | Header magic | 0x55AA00FF  or 0x27051956 (Uboot)
 | 0x4  | 4 | CRC of Header  | CRC is from byte 8 to 128 |
 | 0x8  | 2 | ????? | ???? |
 | 0x10  | 2 | ????? | ???? |
 | 0x12  | 2 | Image length | With RSA Signature (Signature is 521 bytes at tail of image) |
 | 0x14  | 114 | TBD | TBD | 
+| 0x40  | 4 | Loader Type | 0x4 - means SPINAND, 0x2 - SPINOR, 0x8 - EMMC
 
 ### Boot process ###
 
