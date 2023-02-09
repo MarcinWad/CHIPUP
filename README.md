@@ -20,6 +20,7 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 | 0x8  | 2 | ????? | ???? |
 | 0x10  | 2 | Load from address (in device) | Address in source device to load from (adds to it offset of heeader 0x80) |
 | 0x14  | 4 | Load Address | 0x100000 Big Endian |
+| 0x18  | 4 | Data CRC | Used when RSA check is not enabled | 
 | 0x0C  | 4 | Payloadsize  | In hex Big Endian, it later adds 776 bytes extra to this value and loads into memory |
 | 0x20  | 4 | Offset of next boot image in flash | It will try to skip there if loading fails |
 | 0x40  | 4 | Loader Type | 0x4 - means SPINAND, 0x2 - SPINOR, 0x8 - EMMC |
