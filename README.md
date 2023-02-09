@@ -17,10 +17,12 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 | 0x0  | 4 | Header magic | 0x55AA00FF  or 0x27051956 (Uboot)
 | 0x4  | 4 | CRC of Header  | CRC is from byte 8 to 128 |
 | 0x8  | 2 | ????? | ???? |
-| 0x10  | 2 | ????? | ???? |
-| 0x12  | 2 | Image length | With RSA Signature (Signature is 521 bytes at tail of image) |
-| 0x14  | 114 | TBD | TBD | 
-| 0x40  | 4 | Loader Type | 0x4 - means SPINAND, 0x2 - SPINOR, 0x8 - EMMC
+| 0x10  | 2 | Load from address (in device) | Address in source device to load from (adds to it offset of heeader 0x80) |
+| 0x14  | 4 | Load Address | 0x100000 Big Endian |
+| 0x0C  | 4 | Payloadsize  | In hex Big Endian, it later adds 776 bytes extra to this value and loads into memory |
+| 0x20  | 4 | Offset of next boot image in flash | It will try to skip there if loading fails |
+| 0x40  | 4 | Loader Type | 0x4 - means SPINAND, 0x2 - SPINOR, 0x8 - EMMC |
+| 0x44  | 4 | Sign Type | TBD |
 
 ### Boot process ###
 
