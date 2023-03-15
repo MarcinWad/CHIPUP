@@ -40,11 +40,50 @@ This is a serial speed negotiation which SOC tries to do to put FACTORY_MODE spe
 Scenario is as follows:
 Set UART speed to 750k, send bytes 0x025A0003 and waits for 100ms for response 0x02A50003. If it recicves, this bytes, it will setup this baudrate and try to boot again using FACTORY_MODE. This mode will be written later. If it not recives magic bytes, it lowers speed, send again and wait for answer. If no answer is recived, it stays at 115200k and tries to boot FACTORY_MODE again.
 
-### Boot mode
+### Boot process from power-on
 
-After power up, SOC scans for MiniBoot header on NAND or NOR chip for a magic bytes. When it finds one - it checks Image sign which is at the end of the Image (521 bytes) using RSA algorightm inside SOC (Security registers). 
+*1st Stage (CPU BOOTROM)*
+1. After power-up camera, CPU boots from Internat Bootrom stored at 0x0, Internal RAM is 64k in size.
+2. At this stage it tries to load 256 bytes from every device it supports until it finds a magic header
+3. Order of devices is SPINAND, SPINOR, eMMC.
+4. It searches for Magic 0xff00AA55 bytes and then checks RSA signature of this image
+5. Then it is loaded to internat RAM at 0x100000 and then Jumps there.
+6. At this level Nand Flash starts at 0x40000000
 
-After check pass, it trains DDR Memory and loads a second stage bootloader (i.e Uboot) into RAM and Jumps there.
+*2nd Stage (Vendor)*
+1. It starts at addres 0x100000 and initializes DDR, serial, and IRQ
+2. Then remaps NAND to 0x0 and disables internat bootrom and SRAM
+3. Memory is mapped at 0x10000000 and limited to 256Mbytes
+4. It searches for 3rd stage (Uboot in my situation) and loads it at 0x12000000
+5. It jumps there
+
+*3rd Stage* 
+1. It starts Uboot at 0x12000000 and continues from there
+
+
+### FACTORY MODE ###
+
+Device has internal, BOOTROM recovery procedure like in HiSilicon SoC. It uses UART as a debug interface to modify memory in-place or flash NAND/NOR/eMMC memory without having working bootloader. It uses pack of hex commands to do the job. Using UART speed negtiation, you can negotiate faster speeds instead of 115200 kbits to gain speed in flashing big images (like Kernel).
+
+Mechanism works as follows (all data are hex-bytes).
+
+1. At power ON it sends magic packet `0x02140003` and waits for 100ms for a response packet `0x02240003` to enter Factory Mode. If no packet is recived, it starts normal BOOTROM 1st stage boot process.
+
+2. After it recieves this packets, it enters Factory Mode and stays there waiting for special 4-byte commands.
+3. Commands are:
+
+    `0x18` - Upload data to specified address in memory
+  
+    `0x19` - Set memory at address to specified 4-byte value
+  
+    `0x1A` - Dump memory at address with n-count 4-byte data
+  
+    `0x45` - Erase Flash (Supports NAND, SPI and eMMC)
+  
+    `0x1D` - Program Flash at specified addres by page-size at a time
+  
+4. Structure of commands:
+
 
 ### Boot message after power UP ###
 
