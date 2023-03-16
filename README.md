@@ -9,7 +9,7 @@ Based on findings about new IP Camera SOC from CHIPUP China company.
 4. [Boot process](#boot-process)
 5. [Boot log of MiniBoot](#boot-message-after-power-up)
 6. [Boot after NAND desoldered](#boot-after-nand-desoldered)
-7. [FACTORY_MODE - you can flash whole NAND, modify MEMORY and boot from RAM](#tbd)
+7. [FACTORY MODE](#factory-mode) Ability to flash SPI/NAND/eMMC from BootROM)
 
 ### Header structure ###
 
@@ -69,21 +69,82 @@ Mechanism works as follows (all data are hex-bytes).
 
 1. At power ON it sends magic packet `0x02140003` and waits for 100ms for a response packet `0x02240003` to enter Factory Mode. If no packet is recived, it starts normal BOOTROM 1st stage boot process.
 
-2. After it recieves this packets, it enters Factory Mode and stays there waiting for special 4-byte commands.
+2. After it recieves this packet, it enters Factory Mode and stays there waiting for special 4-byte commands. Communication is very simple and consists of exchanging 4byte command between SoC and the other end. Comand has following structure:
+
+	Send 4 -byte command
+	Send: argument(s)
+	Recieve: 4-byte response with OK packet and then data or only ERROR packet
+	
+ `0x02 0x05  0xZZ 0x03` - OK
+ 
+ `x002 0x0A 0x00 0x03` - ERROR
+
+	`0x02` - first byte is always 0x02
+
+	`0xXX` - command to execute
+
+	`0xZZ` - Checksum of arguments (described later on)
+
+	`0x03` - End of command
+
 3. Commands are:
 
-    `0x18` - Upload data to specified address in memory
-  
-    `0x19` - Set memory at address to specified 4-byte value
-  
-    `0x1A` - Dump memory at address with n-count 4-byte data
-  
-    `0x45` - Erase Flash (Supports NAND, SPI and eMMC)
-  
-    `0x1D` - Program Flash at specified addres by page-size at a time
-  
-4. Structure of commands:
+ `0x18` - Write data to specified address in memory
 
+	Command is used to write memory at specified address, address itself is autoincrementing. 	
+	- Wait for MAGIC_PACKET
+	- Send back MAGIC_RESPONSE
+	- Send 0x18 Command: `0x02 0x018 0xZZ 0x03` where 0xZZ is a checkum of all arguments
+	- Send 4-byte address in memory to write to
+	- Send 4-byte element count as hex value (pcount) (max 64 4-byte at one time - 256 bytes total)
+	- Send pcount of 4-bytes data packets
+	- After last one read 4-bytes as a reponse
+	- Result OK or ERROR will be recived.
+	
+ `0x19` - Set memory at address to specified 4-byte value
+ - Wait for MAGIC_PACKET
+ - Send back MAGIC_RESPONSE
+ - Send 0x18 Command: `0x02 0x19 0xZZ 0x03` where 0xZZ is a checkum of all arguments
+ - Send 4-byte address in memory to write to
+ - Send 4-byte value you want to write
+ - Read 4-byte response
+
+ `0x1A` - Dump memory at address with n-count 4-byte data
+
+	Using this command you can dump data from memory or Flash devices (providing proper addresing space)
+ - Wait for MAGIC_PACKET
+ - Send back MAGIC_RESPONSE
+ - Send 0x1A Command: `0x02 0x1A 0xZZ 0x03` where 0xZZ is a checkum of all arguments
+ - Send 4-byte address in memory to read from
+ - Send count of 4-byte data packets  you want to read starting from address (max 64)
+ - Read 4-byte response OK or ERROR
+ - When OK is recived, read comming data of 4-bytes (count)
+
+ `0x45` - Erase Flash (Supports NAND, SPI and eMMC)
+ 
+	This command erases Flash memory at specified offset using full erase block (for SPI_NAND i have it is 0x20000 or 131072 bytes) 
+ - Wait for MAGIC_PACKET
+ - Send back MAGIC_RESPONSE
+ - Send 0x45 Command: `0x02 0x45 0xZZ 0x03` where 0xZZ is a checkum of all arguments
+ - Send address where to start erasing that is aligned to erase block of Flash device. In example SPI-NAND is at 0x40000000 offset. To start erase 4th block, you need to start erasing at 0x40080000.
+ - Send number of erase blocks you want to erase starting from address specified as 4-byte hex value.
+ - Read 4-byte response consisting of OK or ERROR.
+ 
+ `0x1D` - Program Flash at specified addres by page-size at a time
+ This command write data from buffer in memory to flash device at specified offset. There is a special buffer at address `0x10D004` so if you want to program Flash device, you need to use command `0x18` and write data to this address. This buffer is only 2048 bytes long, so to write bigger files you need to pack data in 2048 bytes.
+  - Wait for MAGIC_PACKET
+ - Send back MAGIC_RESPONSE
+ - Write 2048 bytes of data to buffer at `0x10D004` address in memory using `0x18` command described earlier
+ - Send 0x1D Command: `0x02 0x1D 0xZZ 0x03` where 0xZZ is a checkum of all arguments
+ - Send 4-byte flash address where to write this 2048 bytes data
+ - Send number of bytes to write as 4-byte hex value
+ - Read 4-bytes response OK or ERROR
+ 
+4. Command argument checkum
+	All commands has data checkum which is being send and also same checksum is in response to check if data was recived corectly.
+	
+	Calculating is very simple. It sum all bytes in arguments in auto-overflow 2 byte integer.
+	Total sum of bytes as checkum is then written as third byte of every command.
 
 ### Boot message after power UP ###
 
